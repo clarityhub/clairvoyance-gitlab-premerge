@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# make sure OAUTH_TOKEN is set
+if [[ $OAUTH_TOKEN ]]; then
+  PR_BRANCH=$(curl -s -L "http://gitlab.com/api/v4/projects/${CI_PROJECT_ID}/merge_requests?private_token=${OAUTH_TOKEN}&state=opened" | jq -r ".[]|select(.sha == \"$CI_COMMIT_SHA\")|.source_branch")
+  PR_ID=$(curl -s -L "http://gitlab.com/api/v4/projects/${CI_PROJECT_ID}/merge_requests?private_token=${OAUTH_TOKEN}&state=opened" | jq -r ".[]|select(.sha == \"$CI_COMMIT_SHA\")|.iid")
+
+
+  if [[ $PR_ID ]]; then
+    if [ ! -f ../plan.output ]; then
+      node gitlab/create_note.js "$OAUTH_TOKEN" "$CI_PROJECT_ID" "$PR_ID" "$PR_BRANCH"
+    fi
+  fi
+fi
